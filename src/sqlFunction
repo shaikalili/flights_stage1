@@ -1,0 +1,122 @@
+select * from  get_airline_by_username('DELTA')
+
+create function get_airline_by_username(_username text)
+returns TABLE("id" int ,"name" text,"country_id" int,"User_id" bigint)
+language plpgsql
+as
+$$
+BEGIN
+	RETURN QUERY
+	select "Airline_Companies"."id","Airline_Companies"."name","Airline_Companies"."Country_Id",
+    "Airline_Companies"."User_Id" from "Airline_Companies"
+     join "Users"
+     on "Users"."id"="Airline_Companies"."User_Id"
+     where "Username"=_username;
+END;
+$$
+
+/////////////////////////////////////////////////////////////////////////
+
+select * from get_customer_by_username('SHAIk')
+
+create function get_customer_by_username(_username text)
+returns TABLE("id" int ,"first_name" text,"last_name" text,"adress" text,"credit_card" text,"phone" text)
+language plpgsql
+as
+$$
+BEGIN
+	RETURN QUERY
+	select "Customers"."id","Customers"."First_Name","Customers"."Last_Name","Customers"."Adress",
+	"Customers"."Credit_Card_Number","Customers"."Phone_No" from "Customers"
+     join "Users"
+     on "Users"."id"="Customers"."User_Id"
+     where "Username"=_username;
+END;
+$$
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+select * from get_user_by_username('SHAIk')
+
+create function get_user_by_username(_username text)
+returns TABLE("id" int ,"UserName" text,"Password" text,"Email" text,"User_Role" int)
+language plpgsql
+as
+$$
+BEGIN
+	RETURN QUERY
+	select * from "Users"
+    where "Username"=_username;
+END;
+$$
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+select * from get_flights_by_parameters(1,2,'today')
+create function get_flights_by_parameters(_origin_counry_id int, _detination_country_id int,
+_date timestamp)
+returns table ("id" int ,"Airline_company_Id" bigint,"Origin_Country_Id" int,
+			   "Destination_Country_Id" int,"Remaining_Tickets" int,"Depature_Time" timestamp,"Landing_Time" timestamp)
+language plpgsql
+as
+$$
+BEGIN
+RETURN QUERY
+select * from "Flights"
+where "Flights"."Origin_Country_Id"=_origin_counry_id
+and "Flights"."Depature_Time"=_date and
+"Flights"."Destination_Country_Id"=_detination_country_id;
+END;
+$$
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+select * from get_flights_by_airline_id(1)
+create function get_flights_by_airline_id(_airline_id bigint)
+
+returns table ("id" int ,"Airline_company_Id" bigint,"Origin_Country_Id" int,
+			   "Destination_Country_Id" int,"Remaining_Tickets" int,"Depature_Time" timestamp,"Landing_Time" timestamp)
+language plpgsql
+as
+$$
+BEGIN
+RETURN QUERY
+select * from "Flights"
+where "Flights"."Airline_Company_Id"=_airline_id;
+END;
+$$
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+create function get_arrival_flights(_country_id int)
+returns table ("id" int ,"Airline_company_Id" bigint,"Origin_Country_Id" int,
+			   "Destination_Country_Id" int,"Remaining_Tickets" int,"Depature_Time" timestamp,"Landing_Time" timestamp)
+language plpgsql
+as
+$$
+BEGIN
+RETURN QUERY
+select * from "Flights"
+where "Flights"."Destination_Country_Id"=_country_id
+and (EXTRACT(epoch FROM (SELECT (NOW()- "Flights"."Landing_Time")))/3600)>-12;
+END;
+$$
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+create function get_departure_flights(_country_id int)
+returns table ("id" int ,"Airline_company_Id" bigint,"Origin_Country_Id" int,
+			   "Destination_Country_Id" int,"Remaining_Tickets" int,"Depature_Time" timestamp,"Landing_Time" timestamp)
+language plpgsql
+as
+$$
+BEGIN
+RETURN QUERY
+select * from "Flights"
+where "Origin_Country_Id"=_country_id
+and (EXTRACT(epoch FROM (SELECT (NOW()- "Flights"."Depature_Time")))/3600)>-12;
+END;
+$$
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+create function get_tickets_by_customer(_customer_id bigint)
+returns table ("id" int,"Flights_Id" bigint,"Customers_Id" bigint)
+language plpgsql
+as
+$$
+BEGIN
+RETURN QUERY
+select * from "Tickets"
+where "Tickets"."Customers_Id"=_customer_id;
+END;
+$$
